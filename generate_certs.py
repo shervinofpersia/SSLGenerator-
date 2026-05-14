@@ -6,7 +6,7 @@ from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.x509.oid import NameOID
 
-CERT_COUNT = 100
+CERT_COUNT = 500
 OUTPUT_FILE = "certs.json"
 
 def generate_pair():
