@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>☬SHΞN™ SSL Generator</title>
+    <style>
+        :root {
+            --bg: #0b0c10;
+            --card: #15171e;
+            --accent: #c9a227;
+            --accent2: #d4af37;
+            --text: #e0e0e0;
+            --dim: #9e9e9e;
+            --input-bg: #1f2230;
+            --border: #2a2d3b;
+            --danger: #ff5252;
+            --success: #69f0ae;
+            --warning: #ffb74d;
+            --font-mono: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+            --font-main: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: var(--bg);
+            font-family: var(--font-main);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            background-image: radial-gradient(circle at 20% 10%, #1a1a2e 0%, #0b0c10 90%);
+        }
+        .app {
+            width: 100%;
+            max-width: 420px;
+            background: var(--card);
+            border-radius: 28px;
+            padding: 24px 20px 20px;
+            box-shadow: 0 12px 30px rgba(0,0,0,0.6), 0 0 0 1px var(--border);
+            backdrop-filter: blur(10px);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            position: relative;
+        }
+        .header { display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .logo-icon { font-size: 2.8rem; filter: drop-shadow(0 0 8px var(--accent)); }
+        .title {
+            font-size: 1.5rem; font-weight: 700;
+            background: linear-gradient(135deg, var(--accent2), #f0c27b);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            background-clip: text; letter-spacing: 0.5px;
+        }
+        .input-area { display: flex; flex-direction: column; gap: 8px; }
+        label {
+            font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px;
+            color: var(--dim); font-weight: 500;
+        }
+        input {
+            background: var(--input-bg); border: 1.5px solid var(--border);
+            border-radius: 16px; padding: 14px 16px; color: #fff;
+            font-size: 1rem; font-family: var(--font-mono);
+            transition: 0.2s; outline: none;
+        }
+        input:focus { border-color: var(--accent); box-shadow: 0 0 10px rgba(201,162,39,0.2); }
+        .buttons-grid { display: flex; flex-direction: column; gap: 12px; }
+        .btn {
+            border: none; background: var(--accent); color: #0b0c10;
+            font-weight: 700; padding: 14px 18px; border-radius: 18px;
+            font-size: 0.95rem; cursor: pointer; display: flex;
+            align-items: center; justify-content: center; gap: 8px;
+            transition: 0.2s; letter-spacing: 0.3px;
+            box-shadow: 0 4px 12px rgba(201,162,39,0.3); text-transform: uppercase;
+        }
+        .btn:hover { background: #e0b843; transform: translateY(-1px); box-shadow: 0 8px 18px rgba(201,162,39,0.45); }
+        .btn:active { transform: scale(0.97); }
+        .btn.secondary { background: transparent; border: 1.5px solid var(--accent); color: var(--accent); box-shadow: none; }
+        .btn.secondary:hover { background: rgba(201,162,39,0.08); }
+        .btn.download { background: #1e2430; border: 1px solid var(--border); color: #ccc; box-shadow: none; font-size: 0.85rem; }
+        .btn.download:hover { background: #2a3140; border-color: var(--accent2); color: #fff; }
+        .row-buttons { display: flex; gap: 10px; justify-content: space-between; }
+        .row-buttons .btn { flex: 1; }
+        .log-box {
+            background: #0d0f16; border-radius: 16px; padding: 12px 14px;
+            font-family: var(--font-mono); font-size: 0.7rem; color: #b0b0b0;
+            max-height: 80px; overflow-y: auto; border: 1px solid var(--border);
+            line-height: 1.4; display: flex; flex-direction: column; gap: 2px;
+        }
+        .log-entry { display: flex; align-items: center; gap: 6px; }
+        .log-entry.success { color: var(--success); }
+        .log-entry.warning { color: var(--warning); }
+        .log-entry.error { color: var(--danger); }
+        .log-entry .time { color: #666; margin-right: 6px; font-size: 0.65rem; }
+        .spinner-overlay {
+            display: none; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(11,12,16,0.8); backdrop-filter: blur(6px);
+            border-radius: 28px; align-items: center; justify-content: center;
+            flex-direction: column; gap: 18px; z-index: 10;
+        }
+        .spinner-circle {
+            width: 50px; height: 50px; border: 4px solid var(--accent);
+            border-top-color: transparent; border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .footer {
+            text-align: center; font-size: 0.7rem; color: #666; margin-top: 4px;
+            cursor: pointer; transition: 0.2s; text-decoration: none;
+            display: flex; align-items: center; justify-content: center; gap: 4px;
+        }
+        .footer:hover { color: var(--accent2); text-shadow: 0 0 6px var(--accent); }
+        .log-box::-webkit-scrollbar { width: 4px; }
+        .log-box::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 4px; }
+    </style>
+</head>
+<body>
+<div class="app">
+    <div class="header">
+        <span class="logo-icon">☬</span>
+        <span class="title">SHΞN™ SSL</span>
+    </div>
+    <div class="input-area">
+        <label>✦ Common Name (CN)</label>
+        <input type="text" id="cnInput" placeholder="shervin, mydomain.com, 192.168.1.1" value="shervin" autocomplete="off">
+    </div>
+    <div class="buttons-grid">
+        <button class="btn" id="generateBtn"><span>⚡</span> Generate Certificate</button>
+        <div class="row-buttons" id="downloadCerts" style="display: none;">
+            <button class="btn download" id="downloadCrtBtn">📜 mycert.crt</button>
+            <button class="btn download" id="downloadKeyBtn">🔑 mycert.key</button>
+        </div>
+        <button class="btn secondary" id="downloadJsonBtn"><span>📦</span> Download V2Ray Config</button>
+    </div>
+    <div class="log-box" id="logBox">
+        <div class="log-entry"><span class="time">[--:--]</span> Ready</div>
+    </div>
+    <a class="footer" id="footerLink" href="#" target="_blank" rel="noopener">☬ Exclusive SHΞN™ made</a>
+    <div class="spinner-overlay" id="spinnerOverlay">
+        <div class="spinner-circle"></div>
+        <span style="color:var(--accent); font-weight:bold;">Generating...</span>
+    </div>
+</div>
+
+<script>
+    // ----- V2Ray JSON Config (ثابت) -----
+    const v2rayConfig = {
+        "__Credits__": {"creator":"☬Exclusive SHΞN™ made","donate1":"...","telegram_channel":"T.me/aishervin","telegram_support":"T.me/shervini"},
+        "remarks":"☬SHΞЯVIN™🪽 SSL Certificate Bypass",
+        "version":{"min":"26.2.6"},
+        "log":{"loglevel":"warning","dnsLog":false,"access":"none"},
+        "policy":{"levels":{"0":{"uplinkOnly":0,"downlinkOnly":0}}},
+        "dns":{"hosts":{"fastly.redirect":"pypi.org","akamai.redirect":"92.123.102.43"},"servers":[{"address":"localhost","unexpectedIPs":["10.10.34.0/24","2001:4188:2:600::/64"]}],"queryStrategy":"UseSystem","useSystemHosts":true,"tag":"dns_inbound"},
+        "inbounds":[
+            {"tag":"mixed-in","port":10808,"protocol":"mixed","sniffing":{"enabled":true,"destOverride":["tls"]},"streamSettings":{"sockopt":{"tcpKeepAliveInterval":1,"tcpKeepAliveIdle":11}}},
+            {"port":11666,"tag":"tls-decrypt-h11","protocol":"tunnel","settings":{"network":"tcp","port":443,"followRedirect":true},"streamSettings":{"security":"tls","tlsSettings":{"alpn":["http/1.1"],"certificates":[{"usage":"issue","certificateFile":"mycert.crt","keyFile":"mycert.key"}]}}},
+            {"port":11777,"tag":"tls-decrypt-h211","protocol":"tunnel","settings":{"network":"tcp","port":443,"followRedirect":true},"streamSettings":{"security":"tls","tlsSettings":{"alpn":["h2","http/1.1"],"certificates":[{"usage":"issue","certificateFile":"mycert.crt","keyFile":"mycert.key"}]}}}
+        ],
+        "outbounds":[
+            {"tag":"redirect-out-h11","protocol":"direct","settings":{"redirect":"127.0.0.1:11666"}},
+            {"tag":"redirect-out-h211","protocol":"direct","settings":{"redirect":"127.0.0.1:11777"}},
+            {"tag":"tls-repack-akamai","protocol":"direct","settings":{"redirect":"akamai.redirect:443"},"streamSettings":{"security":"tls","tlsSettings":{"serverName":"92.123.102.43","verifyPeerCertByName":"fromMitM,92.123.102.43,a248.e.akamai.net,a.akamaized.net,a.akamaized-staging.net,a.akamaihd.net,a.akamaihd-staging.net,www.akamai.com","alpn":["fromMitM"],"fingerprint":"chrome"},"sockopt":{"domainStrategy":"ForceIP","happyEyeballs":{"tryDelayMs":300,"prioritizeIPv6":false,"interleave":2,"maxConcurrentTry":20}}}},
+            {"tag":"tls-repack-fastly","protocol":"direct","settings":{"redirect":"fastly.redirect:443"},"streamSettings":{"security":"tls","tlsSettings":{"serverName":"pypi.org","verifyPeerCertByName":"fromMitM,www.python.org,pypi.org,fastly.com,www.fastly.com,developer.fastly.com,githubassets.com,github.com,github.io,githubusercontent.com","alpn":["fromMitM"],"fingerprint":"chrome"},"sockopt":{"domainStrategy":"ForceIP","happyEyeballs":{"tryDelayMs":300,"prioritizeIPv6":false,"interleave":2,"maxConcurrentTry":20}}}}
+        ],
+        "routing":{
+            "domainStrategy":"IPOnDemand",
+            "rules":[
+                {"outboundTag":"tls-repack-akamai","inboundTag":["tls-decrypt-h11"]},
+                {"outboundTag":"tls-repack-fastly","inboundTag":["tls-decrypt-h211"]},
+                {"outboundTag":"redirect-out-h11","domain":["regexp:.*akamai.*"]},
+                {"outboundTag":"redirect-out-h211","ip":["geoip:fastly"]},
+                {"outboundTag":"redirect-out-h11","port":"0-65535"}
+            ]
+        }
+    };
+
+    // ----- DOM Elements -----
+    const cnInput = document.getElementById('cnInput');
+    const generateBtn = document.getElementById('generateBtn');
+    const downloadCerts = document.getElementById('downloadCerts');
+    const downloadCrtBtn = document.getElementById('downloadCrtBtn');
+    const downloadKeyBtn = document.getElementById('downloadKeyBtn');
+    const downloadJsonBtn = document.getElementById('downloadJsonBtn');
+    const logBox = document.getElementById('logBox');
+    const spinnerOverlay = document.getElementById('spinnerOverlay');
+    const footerLink = document.getElementById('footerLink');
+
+    let currentCertPem = null;
+    let currentKeyPem = null;
+
+    // ----- Logger -----
+    function log(msg, type='') {
+        const time = new Date().toTimeString().slice(0,8);
+        const div = document.createElement('div');
+        div.className = `log-entry ${type}`;
+        div.innerHTML = `<span class="time">[${time}]</span> ${msg}`;
+        logBox.appendChild(div);
+        logBox.scrollTop = logBox.scrollHeight;
+        while (logBox.children.length > 6) logBox.removeChild(logBox.firstChild);
+    }
+
+    // ----- File Download Helper -----
+    function downloadBlob(content, filename, mime='application/octet-stream') {
+        const blob = new Blob([content], {type: mime});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = filename;
+        document.body.appendChild(a); a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+
+    // ----- Base64 & PEM Helpers -----
+    function arrayBufferToBase64(buffer) {
+        const bytes = new Uint8Array(buffer);
+        let binary = '';
+        for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+        return btoa(binary);
+    }
+
+    function pemEncode(derBytes, label) {
+        const b64 = arrayBufferToBase64(derBytes);
+        const lines = b64.match(/.{1,64}/g);
+        return `-----BEGIN ${label}-----\n${lines.join('\n')}\n-----END ${label}-----\n`;
+    }
+
+    // ----- Minimal ASN.1 Encoder (فقط موارد لازم برای X.509) -----
+    const ASN1 = {
+        tagSequence: 0x30,
+        tagInteger: 0x02,
+        tagBitString: 0x03,
+        tagOctetString: 0x04,
+        tagOID: 0x06,
+        tagPrintableString: 0x13,
+        tagUTCTime: 0x17,
+        tagContextSpecific: (n) => 0xA0 | n,
+        encodeLength(len) {
+            if (len < 128) return new Uint8Array([len]);
+            const temp = [];
+            let l = len;
+            while (l > 0) { temp.unshift(l & 0xFF); l >>= 8; }
+            return new Uint8Array([0x80 | temp.length, ...temp]);
+        },
+        encode(tag, content) {
+            const lenBytes = this.encodeLength(content.length);
+            const result = new Uint8Array(1 + lenBytes.length + content.length);
+            result[0] = tag;
+            result.set(lenBytes, 1);
+            result.set(content, 1 + lenBytes.length);
+            return result;
+        },
+        integer(value) {
+            const bytes = [];
+            let v = BigInt(value);
+            while (v > 0) { bytes.unshift(Number(v & 0xFFn)); v >>= 8n; }
+            if (bytes.length === 0) bytes.push(0);
+            if (bytes[0] & 0x80) bytes.unshift(0); // sign bit
+            return this.encode(this.tagInteger, new Uint8Array(bytes));
+        },
+        bitString(data) {
+            return this.encode(this.tagBitString, new Uint8Array([0, ...data]));
+        },
+        octetString(data) {
+            return this.encode(this.tagOctetString, data);
+        },
+        oid(oid) {
+            const parts = oid.split('.').map(Number);
+            const out = [40 * parts[0] + parts[1]];
+            for (let i = 2; i < parts.length; i++) {
+                let val = parts[i];
+                const bytes = [];
+                bytes.unshift(val & 0x7F);
+                val >>= 7;
+                while (val > 0) {
+                    bytes.unshift((val & 0x7F) | 0x80);
+                    val >>= 7;
+                }
+                out.push(...bytes);
+            }
+            return this.encode(this.tagOID, new Uint8Array(out));
+        },
+        sequence(items) {
+            const totalLen = items.reduce((acc, item) => acc + item.length, 0);
+            return this.encode(this.tagSequence, new Uint8Array(totalLen));
+        },
+        // helper to concatenate Uint8Arrays
+        concat(...arrays) {
+            const totalLen = arrays.reduce((acc, a) => acc + a.length, 0);
+            const result = new Uint8Array(totalLen);
+            let offset = 0;
+            for (const a of arrays) {
+                result.set(a, offset);
+                offset += a.length;
+            }
+            return result;
+        }
+    };
+
+    // ----- Build X.509 Certificate (self‑signed) -----
+    async function generateCert(cn, publicKeyRaw, privateKeyJwk) {
+        // استخراج کلید عمومی RSA
+        const publicKeyJwk = await crypto.subtle.exportKey('jwk', publicKeyRaw);
+        const n = base64ToBigInt(publicKeyJwk.n);
+        const e = base64ToBigInt(publicKeyJwk.e);
+        const modulusBytes = bigIntToUint8Array(n, true);
+        const exponentBytes = bigIntToUint8Array(e, false);
+
+        // SubjectPublicKeyInfo
+        const rsaOID = ASN1.oid('1.2.840.113549.1.1.1');
+        const publicKeySeq = ASN1.sequence([ASN1.integer(n), ASN1.integer(e)]);
+        const publicKeyBitString = ASN1.bitString(publicKeySeq);
+        const algorithmSeq = ASN1.sequence([rsaOID, ASN1.encode(0x05, new Uint8Array(0))]); // NULL parameters
+        const spki = ASN1.sequence([algorithmSeq, publicKeyBitString]);
+
+        // Serial number (random)
+        const serialBytes = new Uint8Array(16);
+        crypto.getRandomValues(serialBytes);
+        serialBytes[0] &= 0x7F; // positive
+        const serial = ASN1.integer(bigIntFromBytes(serialBytes));
+
+        // Validity
+        const notBefore = new Date();
+        const notAfter = new Date(notBefore);
+        notAfter.setFullYear(notBefore.getFullYear() + 100);
+        function toUTCTime(d) {
+            return d.toISOString().replace(/[-:]/g,'').slice(2,14)+'Z';
+        }
+        const utcBefore = ASN1.encode(ASN1.tagUTCTime, new TextEncoder().encode(toUTCTime(notBefore)));
+        const utcAfter = ASN1.encode(ASN1.tagUTCTime, new TextEncoder().encode(toUTCTime(notAfter)));
+        const validity = ASN1.sequence([utcBefore, utcAfter]);
+
+        // Subject/Issuer
+        const nameAttr = (oid, value) => {
+            const valueEnc = ASN1.encode(ASN1.tagPrintableString, new TextEncoder().encode(value));
+            return ASN1.sequence([ASN1.oid(oid), valueEnc]);
+        };
+        const subject = ASN1.sequence([
+            ASN1.set([nameAttr('2.5.4.6', 'XX')]), // country
+            ASN1.set([nameAttr('2.5.4.10', 'SHΞN™')]), // organization
+            ASN1.set([nameAttr('2.5.4.3', cn)]) // commonName
+        ]);
+        const issuer = subject;
+
+        // Extensions
+        const extBasicConstraints = ASN1.sequence([
+            ASN1.oid('2.5.29.19'),
+            ASN1.octetString(ASN1.sequence([ASN1.encode(0x01, new Uint8Array([0xFF]))])) // critical, CA=false
+        ]);
+        const extKeyUsage = ASN1.sequence([
+            ASN1.oid('2.5.29.15'),
+            ASN1.octetString(ASN1.bitString(new Uint8Array([0x05, 0xA0]))) // digitalSignature + keyEncipherment
+        ]);
+        const extExtKeyUsage = ASN1.sequence([
+            ASN1.oid('2.5.29.37'),
+            ASN1.octetString(ASN1.sequence([
+                ASN1.oid('1.3.6.1.5.5.7.3.1'), // serverAuth
+                ASN1.oid('1.3.6.1.5.5.7.3.2')  // clientAuth
+            ]))
+        ]);
+        const extensions = ASN1.sequence([extBasicConstraints, extKeyUsage, extExtKeyUsage]);
+        const extensionsContext = ASN1.encode(ASN1.tagContextSpecific(3), ASN1.sequence([extensions]));
+
+        // TBS Certificate
+        const tbs = ASN1.sequence([
+            ASN1.encode(0xA0, new Uint8Array([0x03, 0x02, 0x01, 0x02])), // version v3
+            serial,
+            algorithmSeq,
+            issuer,
+            validity,
+            subject,
+            spki,
+            extensionsContext
+        ]);
+
+        // Sign TBS
+        const signature = await crypto.subtle.sign(
+            { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' },
+            privateKeyRaw,
+            tbs
+        );
+
+        // Signature Algorithm = sha256WithRSAEncryption (1.2.840.113549.1.1.11)
+        const sigAlgOID = ASN1.oid('1.2.840.113549.1.1.11');
+        const sigAlgSeq = ASN1.sequence([sigAlgOID, ASN1.encode(0x05, new Uint8Array(0))]);
+        const sigBitString = ASN1.bitString(new Uint8Array(signature));
+
+        const cert = ASN1.sequence([tbs, sigAlgSeq, sigBitString]);
+        return pemEncode(cert, 'CERTIFICATE');
+    }
+
+    // ----- Convert JWK RSA parameters to PKCS#1 PEM -----
+    async function privateKeyToPkcs1(privateKeyRaw, jwk) {
+        const n = base64ToBigInt(jwk.n);
+        const e = base64ToBigInt(jwk.e);
+        const d = base64ToBigInt(jwk.d);
+        const p = base64ToBigInt(jwk.p);
+        const q = base64ToBigInt(jwk.q);
+        const dp = base64ToBigInt(jwk.dp);
+        const dq = base64ToBigInt(jwk.dq);
+        const qi = base64ToBigInt(jwk.qi);
+        const seq = ASN1.sequence([
+            ASN1.integer(0), // version
+            ASN1.integer(n),
+            ASN1.integer(e),
+            ASN1.integer(d),
+            ASN1.integer(p),
+            ASN1.integer(q),
+            ASN1.integer(dp),
+            ASN1.integer(dq),
+            ASN1.integer(qi)
+        ]);
+        return pemEncode(seq, 'RSA PRIVATE KEY');
+    }
+
+    // ----- BigInt helpers -----
+    function base64ToBigInt(b64) {
+        const bytes = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+        return bigIntFromBytes(bytes);
+    }
+    function bigIntFromBytes(bytes) {
+        let hex = '';
+        for (const b of bytes) hex += b.toString(16).padStart(2,'0');
+        return BigInt('0x' + hex);
+    }
+    function bigIntToUint8Array(bigInt, withSign) {
+        const hex = bigInt.toString(16);
+        const len = Math.ceil(hex.length / 2);
+        const bytes = new Uint8Array(len);
+        for (let i = 0; i < len; i++) {
+            bytes[i] = parseInt(hex.substr(i*2, 2), 16);
+        }
+        // if first byte > 0x7F add leading 0x00 for unsigned representation
+        if (withSign && bytes[0] & 0x80) {
+            const tmp = new Uint8Array(len+1);
+            tmp[0] = 0;
+            tmp.set(bytes, 1);
+            return tmp;
+        }
+        return bytes;
+    }
+
+    // ----- Main Generation -----
+    async function generate() {
+        const cn = cnInput.value.trim();
+        if (!cn) { alert('Please enter Common Name'); return; }
+
+        spinnerOverlay.style.display = 'flex';
+        downloadCerts.style.display = 'none';
+        log(`Generating RSA key pair & certificate for CN: ${cn}`, 'warning');
+
+        try {
+            // 1. Generate RSA 2048 key pair
+            const keyPair = await crypto.subtle.generateKey(
+                { name: 'RSASSA-PKCS1-v1_5', modulusLength: 2048, publicExponent: new Uint8Array([0x01, 0x00, 0x01]), hash: 'SHA-256' },
+                true, // extractable
+                ['sign', 'verify']
+            );
+            log('RSA 2048 key pair generated.', 'success');
+
+            const privateKey = keyPair.privateKey;
+            const publicKey = keyPair.publicKey;
+
+            // 2. Export JWK for parameters
+            const jwk = await crypto.subtle.exportKey('jwk', privateKey);
+
+            // 3. Generate Certificate PEM
+            const certPem = await generateCert(cn, publicKey, privateKey);
+            // 4. Generate Private Key PEM (PKCS#1)
+            const keyPem = await privateKeyToPkcs1(privateKey, jwk);
+
+            currentCertPem = certPem;
+            currentKeyPem = keyPem;
+            downloadCerts.style.display = 'flex';
+            log('Certificate and private key ready.', 'success');
+        } catch (err) {
+            log('Error: ' + err.message, 'error');
+        } finally {
+            spinnerOverlay.style.display = 'none';
+        }
+    }
+
+    // ----- Event Listeners -----
+    generateBtn.addEventListener('click', generate);
+    downloadCrtBtn.addEventListener('click', () => {
+        if (!currentCertPem) return alert('No cert yet');
+        downloadBlob(currentCertPem, 'mycert.crt', 'application/x-pem-file');
+        log('Downloaded mycert.crt', 'success');
+    });
+    downloadKeyBtn.addEventListener('click', () => {
+        if (!currentKeyPem) return alert('No key yet');
+        downloadBlob(currentKeyPem, 'mycert.key', 'application/x-pem-file');
+        log('Downloaded mycert.key', 'warning');
+    });
+    downloadJsonBtn.addEventListener('click', () => {
+        const remark = v2rayConfig.remarks || 'SHEN_Config';
+        const safeName = remark.replace(/[<>:"/\\|?*]+/g, '_').replace(/\s+/g, '_');
+        const json = JSON.stringify(v2rayConfig, null, 2);
+        downloadBlob(json, `${safeName}.json`, 'application/json');
+        log(`Downloaded ${safeName}.json`, 'success');
+    });
+    footerLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        window.open('https://T.me/shervini', '_blank');
+    });
+
+    // Initial log
+    log('App ready. Enter CN and generate.', 'success');
+</script>
+</body>
+</html>
